@@ -1,82 +1,107 @@
-from flask import Flask, redirect, request, session, url_for
-import requests
-import json
-from urllib.parse import urlencode
+from datetime import datetime, timedelta
+from typing import Annotated, Union
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.security import OAuth2PasswordBearer, OAuth2AuthorizationCodeBearer
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from pydantic import BaseModel
+from fastapi.responses import RedirectResponse
 
-app = Flask(__name__)
-app.secret_key = 'ashduihibfdshui' #your_secret_key
-app.config['GOOGLE_CLIENT_ID'] = '671071079747-0mr2lmq57gnn2vn9sk06hpvolg6m3msp.apps.googleusercontent.com'
-app.config['GOOGLE_CLIENT_SECRET'] = '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'
-app.config['GOOGLE_REDIRECT_URI'] = 'http://34.16.183.53.nip.io:8000/callback'
-app.config['GOOGLE_AUTH_URL'] = 'https://accounts.google.com/o/oauth2/auth'
-app.config['GOOGLE_TOKEN_URL'] = 'https://accounts.google.com/o/oauth2/token'
-app.config['GOOGLE_USER_INFO_URL'] = 'https://www.googleapis.com/oauth2/v1/userinfo'
+SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-@app.route('/')
-
-def home():
-    if 'google_token' in session:
-        user_info = get_user_info(session['google_token'])
-
-        # Check if 'name' key exists in user_info
-        if 'name' in user_info:
-            username = user_info['name']
-        else:
-            username = 'User'
-
-        return f'Hello, {username}! <a href="/logout">Logout</a>'
-    else:
-        return '<a href="/login">Login with Google</a>'
-
-#def home():
-#    if 'google_token' in session:
-#        user_info = get_user_info(session['google_token'])
-#        return f'Hello, {user_info["name"]}! <a href="/logout">Logout</a>'
-#    else:
-#        return '<a href="/login">Login with Google</a>'
-
-@app.route('/login')
-def login():
-    return redirect(get_auth_url())
-
-@app.route('/logout')
-def logout():
-    session.pop('google_token', None)
-    return redirect(url_for('home'))
-
-@app.route('/callback')
-def callback():
-    code = request.args.get('code')
-    token = get_access_token(code)
-    session['google_token'] = token
-    return redirect(url_for('home'))
-
-def get_auth_url():
-    params = {
-        'client_id': app.config['GOOGLE_CLIENT_ID'],
-        'redirect_uri': app.config['GOOGLE_REDIRECT_URI'],
-        'scope': 'openid profile email',
-        'response_type': 'code',
+fake_users_db = {
+    "johndoe": {
+        "username": "johndoe",
+        "full_name": "John Doe",
+        "email": "johndoe@example.com",
+        "hashed_password": "$2b$12$3SH9Gj0hYS9j/1jicQRvQ.hcibXuNw1VfyKQWnZ5hBIDDEHC8njh2",
+        "disabled": False,
     }
-    return f"{app.config['GOOGLE_AUTH_URL']}?{urlencode(params)}"
+}
 
-def get_access_token(code):
-    data = {
-        'code': code,
-        'client_id': app.config['GOOGLE_CLIENT_ID'],
-        'client_secret': app.config['GOOGLE_CLIENT_SECRET'],
-        'redirect_uri': app.config['GOOGLE_REDIRECT_URI'],
-        'grant_type': 'authorization_code',
-    }
-    response = requests.post(app.config['GOOGLE_TOKEN_URL'], data=data)
-    return response.json().get('access_token')
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
-def get_user_info(token):
-    headers = {'Authorization': f'Bearer {token}'}
-    response = requests.get(app.config['GOOGLE_USER_INFO_URL'], headers=headers)
-    return response.json()
+class TokenData(BaseModel):
+    username: Union[str, None] = None
 
-if __name__ == '__main__':
-    from urllib.parse import urlencode
-    #app.run(debug=True, port=8080)
-    app.run(debug=True, host='0.0.0.0', port=8000)
+class User(BaseModel):
+    username: str
+    email: Union[str, None] = None
+    full_name: Union[str, None] = None
+    disabled: Union[bool, None] = None
+
+class UserInDB(User):
+    hashed_password: str
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# Google OAuth2 configuration
+GOOGLE_CLIENT_ID = "671071079747-1er03q01u8nab6v7o7oq81ao591ms4gl.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
+GOOGLE_REDIRECT_URI = "http://34.16.183.53.nip.io:8000/login/callback"
+
+oauth2_google = OAuth2AuthorizationCodeBearer(
+    authorizationUrl="https://accounts.google.com/o/oauth2/auth",
+    tokenUrl="https://accounts.google.com/o/oauth2/token",
+    clientId=GOOGLE_CLIENT_ID,
+    clientSecret=GOOGLE_CLIENT_SECRET,
+    redirectUrl=GOOGLE_REDIRECT_URI,
+    scopes={"openid", "profile", "email"},
+)
+
+app = FastAPI()
+
+@app.get("/login")
+async def login(request: Request):
+    google_login_url = oauth2_google.get_authorization_url()
+    return RedirectResponse(google_login_url)
+
+@app.get("/login/callback")
+async def login_callback(request: Request, code: str = Query(...)):
+    token = await oauth2_google.get_access_token(code)
+    return {"token": token}
+
+@app.post("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+):
+    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me/", response_model=User)
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    return current_user
+
+@app.get("/users/me/items/")
+async def read_own_items(
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    return [{"item_id": "Foo", "owner": current_user.username}]
+
+if __name__ == "__main__":
+    init_fake_user(
+        "sample_user",
+        "Sample User",
+        "password",
+        "sample_user@nowhere.com"
+    )
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
