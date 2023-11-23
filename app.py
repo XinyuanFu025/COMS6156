@@ -41,7 +41,12 @@ class UserInDB(User):
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+#oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2AuthorizationCodeBearer(
+    authorizationUrl="https://accounts.google.com/o/oauth2/auth",
+    tokenUrl="https://accounts.google.com/o/oauth2/token",
+)
+
 
 # Google OAuth2 configuration
 GOOGLE_CLIENT_ID = "671071079747-1er03q01u8nab6v7o7oq81ao591ms4gl.apps.googleusercontent.com"
@@ -61,15 +66,15 @@ app = FastAPI()
 
 @app.get("/login")
 async def login():
-    # 将用户重定向到 Google OAuth 登录
+    # Redirect users to Google OAuth login
     authorization_url = oauth2_scheme.get_authorization_url()
-    return {"msg": "重定向到 Google OAuth 登录", "authorization_url": authorization_url}
+    return {"msg": "Redirect to Google OAuth login", "authorization_url": authorization_url}
 
 @app.get("/login/callback")
 async def login_callback(code: str):
-    # 处理来自 Google OAuth 的回调
+    # Handle the callback from Google OAuth
     token = await oauth2_scheme.get_access_token(code)
-    return {"msg": "来自 Google OAuth 的回调", "token": token}
+    return {"msg": "Callback from Google OAuth", "token": token}
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(
