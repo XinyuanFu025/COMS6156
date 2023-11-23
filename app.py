@@ -6,6 +6,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2AuthorizationCodeBearer
+from fastapi import FastAPI
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
@@ -49,7 +51,7 @@ GOOGLE_REDIRECT_URI = "http://34.16.183.53.nip.io:8000/login/callback"
 oauth2_google = OAuth2AuthorizationCodeBearer(
     authorizationUrl="https://accounts.google.com/o/oauth2/auth",
     tokenUrl="https://accounts.google.com/o/oauth2/token",
-    client_id=GOOGLE_CLIENT_ID,
+    clientId=GOOGLE_CLIENT_ID,
     clientSecret=GOOGLE_CLIENT_SECRET,
     redirectUrl=GOOGLE_REDIRECT_URI,
     scopes={"openid", "profile", "email"},
@@ -58,14 +60,16 @@ oauth2_google = OAuth2AuthorizationCodeBearer(
 app = FastAPI()
 
 @app.get("/login")
-async def login(request: Request):
-    google_login_url = oauth2_google.get_authorization_url()
-    return RedirectResponse(google_login_url)
+async def login():
+    # 将用户重定向到 Google OAuth 登录
+    authorization_url = oauth2_scheme.get_authorization_url()
+    return {"msg": "重定向到 Google OAuth 登录", "authorization_url": authorization_url}
 
 @app.get("/login/callback")
-async def login_callback(request: Request, code: str = Query(...)):
-    token = await oauth2_google.get_access_token(code)
-    return {"token": token}
+async def login_callback(code: str):
+    # 处理来自 Google OAuth 的回调
+    token = await oauth2_scheme.get_access_token(code)
+    return {"msg": "来自 Google OAuth 的回调", "token": token}
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(
