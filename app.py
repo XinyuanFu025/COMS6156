@@ -79,4 +79,4 @@ def get_user_info(token):
 if __name__ == '__main__':
     from urllib.parse import urlencode
     #app.run(debug=True, port=8080)
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8000)
