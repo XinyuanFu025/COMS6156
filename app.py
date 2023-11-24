@@ -39,6 +39,7 @@ def logout():
 @app.route('/login/authorized')
 def authorized():
     response = google.authorized_response()
+    app.logger.info('OAuth Response: %s', response)
     if response is None or response.get('access_token') is None:
         return 'Access denied: reason={} error={}'.format(
             request.args['error_reason'],
