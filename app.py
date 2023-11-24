@@ -2,9 +2,9 @@ from flask import Flask, redirect, url_for, session
 from flask_oauthlib.client import OAuth
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Change this to a secure secret key
+app.secret_key = 'your_secret_key'
 
-# Replace the placeholder with your desired redirect URI
+# Update the callback URL to match your GCP VM's IP or domain
 MANUAL_CALLBACK_URL = 'http://34.125.89.250.nip.io:5000/login/authorized'
 
 oauth = OAuth(app)
@@ -21,7 +21,6 @@ google = oauth.remote_app(
     request_token_url=None,
     access_token_method='POST',
     access_token_url='https://accounts.google.com/o/oauth2/token',
-    redirect_uri=MANUAL_CALLBACK_URL  # Use the manually set callback URL
 )
 
 @app.route('/')
