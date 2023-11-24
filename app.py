@@ -4,6 +4,9 @@ from flask_oauthlib.client import OAuth
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Change this to a secure secret key
 
+# Replace the placeholder with your desired redirect URI
+MANUAL_CALLBACK_URL = 'http://34.125.89.250.nip.io:5000/login/authorized'
+
 oauth = OAuth(app)
 
 google = oauth.remote_app(
@@ -18,6 +21,7 @@ google = oauth.remote_app(
     request_token_url=None,
     access_token_method='POST',
     access_token_url='https://accounts.google.com/o/oauth2/token',
+    redirect_uri=MANUAL_CALLBACK_URL  # Use the manually set callback URL
 )
 
 @app.route('/')
@@ -26,7 +30,7 @@ def index():
 
 @app.route('/login')
 def login():
-    return google.authorize(callback=url_for('authorized', _external=True))
+    return google.authorize(callback=MANUAL_CALLBACK_URL)
 
 @app.route('/logout')
 def logout():
