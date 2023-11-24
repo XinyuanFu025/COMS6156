@@ -42,8 +42,8 @@ def authorized():
     app.logger.info('OAuth Response: %s', response)
     if response is None or response.get('access_token') is None:
         return 'Access denied: reason={} error={}'.format(
-            request.args['error_reason'],
-            request.args['error_description']
+            request.args['error_reason', 'unknown'],
+            request.args['error_description', 'unknown']
         )
     
     session['google_token'] = (response['access_token'], '')
