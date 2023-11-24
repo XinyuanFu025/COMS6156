@@ -5,7 +5,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 # Update the callback URL to match your GCP VM's IP or domain
-MANUAL_CALLBACK_URL = 'http://34.125.89.250:5000/login/authorized'
+MANUAL_CALLBACK_URL = 'http://34.125.89.250.nip.io:5000/login/authorized'
 
 oauth = OAuth(app)
 
