@@ -29,6 +29,7 @@ def index():
 
 @app.route('/login')
 def login():
+    session.pop('google_token', None)
     return google.authorize(callback=MANUAL_CALLBACK_URL)
 
 @app.route('/logout')
