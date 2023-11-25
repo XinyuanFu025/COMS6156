@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = 'abcdefg'
 app.config['GOOGLE_CLIENT_ID'] = '671071079747-1er03q01u8nab6v7o7oq81ao591ms4gl.apps.googleusercontent.com'
 app.config['GOOGLE_CLIENT_SECRET'] = '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'
-app.config['GOOGLE_REDIRECT_URI'] = 'http://34.125.89.250.nip.io:5000/login/authorized'
+app.config['GOOGLE_REDIRECT_URI'] = 'http://34.125.89.250.nip.io:5000/callback'
 app.config['GOOGLE_AUTH_URL'] = 'https://accounts.google.com/o/oauth2/auth'
 app.config['GOOGLE_TOKEN_URL'] = 'https://accounts.google.com/o/oauth2/token'
 app.config['GOOGLE_USER_INFO_URL'] = 'https://www.googleapis.com/oauth2/v1/userinfo'
@@ -58,7 +58,14 @@ def get_access_token(code):
 def get_user_info(token):
     headers = {'Authorization': f'Bearer {token}'}
     response = requests.get(app.config['GOOGLE_USER_INFO_URL'], headers=headers)
-    return response.json()
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        # 输出调试信息
+        print(f"Failed to get user info. Status code: {response.status_code}")
+        print(response.text)
+        return None
 
 if __name__ == '__main__':
     from urllib.parse import urlencode
