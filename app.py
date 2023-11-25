@@ -15,7 +15,7 @@ google = oauth.remote_app(
     consumer_secret='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',
     request_token_params={
         #'scope': 'email https://www.googleapis.com/auth/userinfo.email openid',
-        'scope': 'email',
+        'scope': 'email profile',
     },
     base_url='https://www.googleapis.com/plus/v1/',
     authorize_url='https://accounts.google.com/o/oauth2/auth',
