@@ -1,6 +1,7 @@
 from flask import Flask, redirect, request, session, url_for
 import requests
 from google.auth import jwt
+from google.auth.exceptions import ExpiredSignatureError  # Import the correct exception
 import json
 
 app = Flask(__name__)
