@@ -2,6 +2,7 @@ from flask import Flask, redirect, request, session, url_for
 import requests
 from google.auth import jwt
 from google.auth.exceptions import GoogleAuthError
+from google.auth.jwt import decode as jwt_decode
 import json
 import jwt
 
@@ -40,19 +41,27 @@ def callback():
     print(f"Received Authorization Code: {code}")
     print(f"Obtained Access Token: {token}")
 
-    if token:
-        # Decode and verify the JWT token
-        id_info = decode_verify_jwt(token)
-        print(f"Decoded JWT Token: {id_info}")
+    try:
+        decoded_token = jwt_decode(token)
+        print(f"Decoded JWT Token: {decoded_token}")
+        
+        # 在这里提取你需要的信息，例如用户ID、过期时间等
+        user_id = decoded_token.get('sub')
+        expires_at = decoded_token.get('exp')
 
-        if id_info:
-            session['google_token'] = token
-            return redirect(url_for('home'))
+        # 将用户ID和过期时间存储在 session 中或进行其他处理
+        session['user_id'] = user_id
+        session['expires_at'] = expires_at
 
-    # Output additional information in case of failure
-    print("Failed to authenticate with Google")
-    print(f"Full Request: {request.url}")
-    return 'Failed to authenticate with Google'
+        # 如果需要进行更多的验证，可以在这里添加逻辑
+        # ...
+
+        # 如果一切正常，将用户重定向到 home 页面
+        return redirect(url_for('home'))
+    except Exception as e:
+        print(f"Error decoding JWT token: {e}")
+        print("Failed to authenticate with Google")
+        return 'Failed to authenticate with Google'
 
 
 def get_auth_url():
