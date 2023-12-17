@@ -43,7 +43,8 @@ def callback():
     # Debugging output
     print(f"Received Authorization Code: {code}")
     print(f"Obtained Access Token: {token}")
-
+    user_info = get_user_info(token)
+    print(f"User Info from Google: {user_info}")
     
     try:
         # Verify the ID token
@@ -99,7 +100,7 @@ def get_user_info(token):
         # Output debug information
         print(f"Failed to get user info. Status code: {response.status_code}")
         print(response.text)
-        return None
+        return response.json()
 
 def decode_verify_jwt(token):
     try:
