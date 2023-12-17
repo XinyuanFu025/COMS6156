@@ -117,7 +117,7 @@ def get_access_token(code):
 
 
 def get_user_info(token):
-    headers = {'Authorization': f'Bearer {id_token}'}
+    headers = {'Authorization': f'Bearer {token}'}
     response = requests.get(app.config['GOOGLE_USER_INFO_URL'], headers=headers)
 
     if response.status_code == 200:
