@@ -34,23 +34,17 @@ def logout():
 def callback():
     code = request.args.get('code')
     print(f"Received Authorization Code: {code}")
-    token_response = get_access_token(code)
-    print(f"Token Request Response: {token_response}")
-    
-    # Obtain the Access Token and ID Token from the response
-    access_token = token_response.get('access_token')
-    id_token = token_response.get('id_token')
+    token = get_access_token(code)
 
     # Debugging output
-    print(f"Obtained Access Token: {access_token}")
-    print(f"Obtained ID Token: {id_token}")
-
-    user_info = get_user_info(access_token)
+    print(f"Received Authorization Code: {code}")
+    print(f"Obtained Access Token: {token}")
+    user_info = get_user_info(token)
     print(f"User Info from Google: {user_info}")
-    print(f"user_info: {user_info}")
 
     try:
         # Verify the ID token
+        #id_info = verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
         id_info = verify_oauth2_token(user_info['id_token'], Request(), app.config['GOOGLE_CLIENT_ID'])
 
         # 在这里提取你需要的信息，例如用户ID、过期时间等
@@ -68,14 +62,15 @@ def callback():
         return redirect(url_for('home'))
 
     except Exception as e:
-        print(f"Error verifying ID token: {e}")
-        print("Failed to authenticate with Google")
+        print(f"try except Error verifying ID token: {e}")
+        print("try except Failed to authenticate with Google")
 
         # Add this line to print the received ID token
-        id_token = user_info['id_token']
-        print(f"Received ID Token: {id_token}")
+        id_token = token
+        print(f"try except Received ID Token: {id_token}")
 
-        return 'Failed to authenticate with Google'
+        return 'Failed to authenticate with Google try except'
+
 
 @app.route('/new-feature')
 def new_feature():
@@ -90,7 +85,7 @@ def new_feature():
         if result:
             return f'New Feature: {result}'
         else:
-            return 'Failed to make authorized request.'
+            return 'Failed to make authorized request. def new_featire'
 
     return redirect(url_for('login'))
 
@@ -112,17 +107,8 @@ def get_access_token(code):
         'grant_type': 'authorization_code',
     }
     response = requests.post(app.config['GOOGLE_TOKEN_URL'], data=data)
-
-    try:
-        # 尝试将响应解析为 JSON 格式
-        token_response = response.json()
-    except json.JSONDecodeError:
-        # 如果解析失败，打印响应文本并返回 None 或者适当的错误处理
-        print(f"Failed to parse token response as JSON. Response: {response.text}")
-        return None
-
-    print(f"Token Request Response: {token_response}") 
-    return token_response.get('access_token')
+    print(f"Token Request Response: {response.text}") 
+    return response.json().get('access_token')
 
 def get_user_info(token):
     headers = {'Authorization': f'Bearer {token}'}
@@ -134,8 +120,7 @@ def get_user_info(token):
         # 输出调试信息
         print(f"Failed to get user info. Status code: {response.status_code}")
         print(response.text)
-        # 如果请求失败，引发异常
-        raise Exception('Failed to get user info')
+        return response.json()
 
 def make_authorized_request(api_url, token):
     headers = {'Authorization': f'Bearer {token}'}
@@ -145,10 +130,10 @@ def make_authorized_request(api_url, token):
         return response.text  # 这里可以根据实际情况修改返回的结果
     else:
         # 输出调试信息
-        print(f"Failed to make authorized request. Status code: {response.status_code}")
+        print(f"Failed to make authorized request. make_authorized_request Status code: {response.status_code}")
         print(response.text)
-        # 如果请求失败，引发异常
-        raise Exception('Failed to make authorized request.')
+        return None
 
 if __name__ == '__main__':
+    from urllib.parse import urlencode
     app.run(debug=True, host='0.0.0.0', port=5000)
