@@ -1,5 +1,7 @@
 from flask import Flask, redirect, request, session, url_for
 from google.auth.jwt import decode as google_jwt_decode
+from google.auth.transport.requests import Request
+from google.oauth2.id_token import verify_oauth2_token
 import requests
 from google.auth import jwt
 from google.auth.exceptions import GoogleAuthError
