@@ -39,6 +39,7 @@ def callback():
     # Debugging output
     print(f"Received Authorization Code: {code}")
     print(f"Obtained Access Token: {token}")
+    print(f"Access Token before calling get_user_info: {token}")
     user_info = get_user_info(token)
     print(f"User Info from Google: {user_info}")
 
