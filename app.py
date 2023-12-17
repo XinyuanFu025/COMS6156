@@ -31,6 +31,7 @@ def logout():
 @app.route('/callback')
 def callback():
     code = request.args.get('code')
+    print(f"Received Authorization Code: {code}") 
     token = get_access_token(code)
 
     # Debugging output
@@ -97,6 +98,7 @@ def get_access_token(code):
         'grant_type': 'authorization_code',
     }
     response = requests.post(app.config['GOOGLE_TOKEN_URL'], data=data)
+    print(f"Token Request Response: {response.text}") 
     return response.json().get('access_token')
 
 def get_user_info(token):
