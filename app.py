@@ -3,6 +3,7 @@ import requests
 from google.auth import jwt
 from google.auth.exceptions import GoogleAuthError
 import json
+import jwt
 
 app = Flask(__name__)
 app.secret_key = 'abcdefg'
@@ -88,18 +89,21 @@ def get_user_info(token):
 
 def decode_verify_jwt(token):
     try:
+        # Output the raw token for debugging
+        print(f"Raw JWT Token: {token}")
+
+        # Attempt to decode the token
         decoded_token = jwt.decode(token, verify=False)
-        # You can add verification logic here if needed
+
         return decoded_token
-    #except jwt.ExpiredSignatureError:
-    #    print("JWT token has expired.")
-    #    return None
-    #except jwt.JWTError as e:
-    #    print(f"Error decoding JWT token: {e}")
-    #    return None
-    except GoogleAuthError as e:
-        print(f"Error decoding JWT token: {e}")
-        return None
+    except jwt.ExpiredSignatureError:
+        print("Token has expired.")
+    except jwt.InvalidTokenError:
+        print("Invalid token.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+    return None
 
 if __name__ == '__main__':
     from urllib.parse import urlencode
