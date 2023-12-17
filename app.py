@@ -40,6 +40,7 @@ def callback():
     print(f"Obtained Access Token: {token}")
     user_info = get_user_info(token)
     print(f"User Info from Google: {user_info}")
+    print(f"user_info: {user_info}")
 
     try:
         # Verify the ID token
