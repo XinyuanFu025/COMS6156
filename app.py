@@ -33,13 +33,15 @@ def logout():
 @app.route('/callback')
 def callback():
     code = request.args.get('code')
-    print(f"Received Authorization Code: {code}") 
+    print(f"Received Authorization Code: {code}")
     token = get_access_token(code)
 
     # Debugging output
     print(f"Received Authorization Code: {code}")
     print(f"Obtained Access Token: {token}")
-    
+    user_info = get_user_info(token)
+    print(f"User Info from Google: {user_info}")
+
     try:
         # Verify the ID token
         id_info = verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
@@ -59,9 +61,15 @@ def callback():
         return redirect(url_for('home'))
 
     except Exception as e:
-        print(f"Error verifying ID token: {e} try")
-        print("Failed to authenticate with Google try")
-        return 'Failed to authenticate with Google try'
+        print(f"try except Error verifying ID token: {e}")
+        print("try except Failed to authenticate with Google")
+
+        # Add this line to print the received ID token
+        id_token = token
+        print(f"try except Received ID Token: {id_token}")
+
+        return 'Failed to authenticate with Google try except'
+
 
 @app.route('/new-feature')
 def new_feature():
