@@ -2,6 +2,8 @@ from flask import Flask, redirect, request, session, url_for
 import requests
 from urllib.parse import urlencode
 from google.oauth2.id_token import verify_oauth2_token
+from google.auth.transport.requests import Request
+
 
 
 app = Flask(__name__)
