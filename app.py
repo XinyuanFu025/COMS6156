@@ -15,10 +15,7 @@ app.config['GOOGLE_USER_INFO_URL'] = 'https://www.googleapis.com/oauth2/v1/useri
 def home():
     if 'google_token' in session:
         user_info = get_user_info(session['google_token'])
-        return f'Hello, {user_info["name"]}! <a href="/logout">Logout</a><br>' \
-               f'<a href="/feature1">Feature 1</a><br>' \
-               f'<a href="/feature2">Feature 2</a><br>' \
-               f'<a href="/feature3">Feature 3</a>'
+        return f'Hello, {user_info["name"]}! <a href="/logout">Logout</a> | <a href="/new-feature">New Feature</a>'
     else:
         return '<a href="/login">Login with Google</a>'
 
@@ -35,29 +32,53 @@ def logout():
 def callback():
     code = request.args.get('code')
     token = get_access_token(code)
-    session['google_token'] = token
-    return redirect(url_for('home'))
 
-@app.route('/feature1')
-def feature1():
+    # Debugging output
+    print(f"Received Authorization Code: {code}")
+    print(f"Obtained Access Token: {token}")
+    user_info = get_user_info(token)
+    print(f"User Info from Google: {user_info}")
+    
+    try:
+        # Verify the ID token
+        verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
+
+        # 在这里提取你需要的信息，例如用户ID、过期时间等
+        user_id = user_info.get('sub')
+        expires_at = user_info.get('exp')
+
+        # 将用户ID和过期时间存储在 session 中或进行其他处理
+        session['user_id'] = user_id
+        session['expires_at'] = expires_at
+
+        # 如果需要进行更多的验证，可以在这里添加逻辑
+        # ...
+
+        # 如果一切正常，将用户重定向到 home 页面
+        return redirect(url_for('home'))
+
+    except Exception as e:
+        print(f"Error verifying ID token: {e}")
+        print("Failed to authenticate with Google")
+        return 'Failed to authenticate with Google'
+
+@app.route('/new-feature')
+def new_feature():
     if 'google_token' in session:
-        # 使用令牌进行授权请求（示例）
-        authorized_data = make_authorized_request('https://www.googleapis.com/some/api/feature1', session['google_token'])
-        return f'Feature 1 Data: {authorized_data}'
-    else:
-        return 'Unauthorized'
+        # 获取已登录用户的 token
+        user_token = session['google_token']
 
-@app.route('/feature2')
-def feature2():
-    # 类似地，处理 Feature 2 的逻辑
-    pass
+        # 示例：进行授权请求，你可以根据实际情况修改 API 地址和参数
+        api_url = 'https://api.example.com/new-feature-endpoint'
+        result = make_authorized_request(api_url, user_token)
 
-@app.route('/feature3')
-def feature3():
-    # 类似地，处理 Feature 3 的逻辑
-    pass
+        if result:
+            return f'New Feature: {result}'
+        else:
+            return 'Failed to make authorized request.'
 
-# ...
+    return redirect(url_for('login'))
+
 def get_auth_url():
     params = {
         'client_id': app.config['GOOGLE_CLIENT_ID'],
@@ -67,18 +88,40 @@ def get_auth_url():
     }
     return f"{app.config['GOOGLE_AUTH_URL']}?{urlencode(params)}"
 
-def make_authorized_request(api_url, token):
+def get_access_token(code):
+    data = {
+        'code': code,
+        'client_id': app.config['GOOGLE_CLIENT_ID'],
+        'client_secret': app.config['GOOGLE_CLIENT_SECRET'],
+        'redirect_uri': app.config['GOOGLE_REDIRECT_URI'],
+        'grant_type': 'authorization_code',
+    }
+    response = requests.post(app.config['GOOGLE_TOKEN_URL'], data=data)
+    return response.json().get('access_token')
+
+def get_user_info(token):
     headers = {'Authorization': f'Bearer {token}'}
-    response = requests.get(api_url, headers=headers)
+    response = requests.get(app.config['GOOGLE_USER_INFO_URL'], headers=headers)
 
     if response.status_code == 200:
         return response.json()
     else:
         # 输出调试信息
+        print(f"Failed to get user info. Status code: {response.status_code}")
+        print(response.text)
+        return response.json()
+
+def make_authorized_request(api_url, token):
+    headers = {'Authorization': f'Bearer {token}'}
+    response = requests.get(api_url, headers=headers)
+
+    if response.status_code == 200:
+        return response.text  # 这里可以根据实际情况修改返回的结果
+    else:
+        # 输出调试信息
         print(f"Failed to make authorized request. Status code: {response.status_code}")
         print(response.text)
         return None
-
 
 if __name__ == '__main__':
     from urllib.parse import urlencode
