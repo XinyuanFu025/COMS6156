@@ -47,7 +47,6 @@ def callback():
 
     try:
         # Verify the ID token
-        #id_info = verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
         id_info = verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
 
 
