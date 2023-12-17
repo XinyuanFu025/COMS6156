@@ -46,7 +46,7 @@ def callback():
     
     try:
         # Verify the ID token
-        verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
+        id_info = verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
 
         # 在这里提取你需要的信息，例如用户ID、过期时间等
         user_id = user_info.get('sub')
