@@ -58,6 +58,27 @@ def feature3():
     pass
 
 # ...
+def get_auth_url():
+    params = {
+        'client_id': app.config['GOOGLE_CLIENT_ID'],
+        'redirect_uri': app.config['GOOGLE_REDIRECT_URI'],
+        'scope': 'openid profile email',
+        'response_type': 'code',
+    }
+    return f"{app.config['GOOGLE_AUTH_URL']}?{urlencode(params)}"
+
+def make_authorized_request(api_url, token):
+    headers = {'Authorization': f'Bearer {token}'}
+    response = requests.get(api_url, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        # 输出调试信息
+        print(f"Failed to make authorized request. Status code: {response.status_code}")
+        print(response.text)
+        return None
+
 
 if __name__ == '__main__':
     from urllib.parse import urlencode
