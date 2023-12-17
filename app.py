@@ -42,13 +42,14 @@ def callback():
     print(f"Received Authorization Code: {code}")
     print(f"Obtained Access Token: {token}")
 
+    
     try:
-        decoded_token = google_jwt_decode(token)
-        print(f"Decoded JWT Token: {decoded_token}")
-        
+        # Verify the ID token
+        id_info = verify_oauth2_token(token, Request(), 671071079747-1er03q01u8nab6v7o7oq81ao591ms4gl.apps.googleusercontent.com)
+
         # 在这里提取你需要的信息，例如用户ID、过期时间等
-        user_id = decoded_token.get('sub')
-        expires_at = decoded_token.get('exp')
+        user_id = id_info.get('sub')
+        expires_at = id_info.get('exp')
 
         # 将用户ID和过期时间存储在 session 中或进行其他处理
         session['user_id'] = user_id
@@ -61,7 +62,7 @@ def callback():
         return redirect(url_for('home'))
 
     except Exception as e:
-        print(f"Error decoding JWT token: {e}")
+        print(f"Error verifying ID token: {e}")
         print("Failed to authenticate with Google")
         return 'Failed to authenticate with Google'
 
