@@ -1,13 +1,6 @@
 from flask import Flask, redirect, request, session, url_for
-from google.auth.jwt import decode as google_jwt_decode
-from google.auth.transport.requests import Request
-from google.oauth2.id_token import verify_oauth2_token
 import requests
-from google.auth import jwt
-from google.auth.exceptions import GoogleAuthError
-from google.auth.jwt import decode as jwt_decode
-import json
-import jwt
+from urllib.parse import urlencode
 
 app = Flask(__name__)
 app.secret_key = 'abcdefg'
@@ -22,7 +15,10 @@ app.config['GOOGLE_USER_INFO_URL'] = 'https://www.googleapis.com/oauth2/v1/useri
 def home():
     if 'google_token' in session:
         user_info = get_user_info(session['google_token'])
-        return f'Hello, {user_info["name"]}! <a href="/logout">Logout</a>'
+        return f'Hello, {user_info["name"]}! <a href="/logout">Logout</a><br>' \
+               f'<a href="/feature1">Feature 1</a><br>' \
+               f'<a href="/feature2">Feature 2</a><br>' \
+               f'<a href="/feature3">Feature 3</a>'
     else:
         return '<a href="/login">Login with Google</a>'
 
@@ -39,86 +35,29 @@ def logout():
 def callback():
     code = request.args.get('code')
     token = get_access_token(code)
+    session['google_token'] = token
+    return redirect(url_for('home'))
 
-    # Debugging output
-    print(f"Received Authorization Code: {code}")
-    print(f"Obtained Access Token: {token}")
-    user_info = get_user_info(token)
-    print(f"User Info from Google: {user_info}")
-    
-    try:
-        # Verify the ID token
-        id_info = verify_oauth2_token(token, Request(), '671071079747-1er03q01u8nab6v7o7oq81ao591ms4gl.apps.googleusercontent.com')
-
-        # 在这里提取你需要的信息，例如用户ID、过期时间等
-        user_id = id_info.get('sub')
-        expires_at = id_info.get('exp')
-
-        # 将用户ID和过期时间存储在 session 中或进行其他处理
-        session['user_id'] = user_id
-        session['expires_at'] = expires_at
-
-        # 如果需要进行更多的验证，可以在这里添加逻辑
-        # ...
-
-        # 如果一切正常，将用户重定向到 home 页面
-        return redirect(url_for('home'))
-
-    except Exception as e:
-        print(f"Error verifying ID token: {e}")
-        print("Failed to authenticate with Google")
-        return 'Failed to authenticate with Google'
-
-
-def get_auth_url():
-    params = {
-        'client_id': app.config['GOOGLE_CLIENT_ID'],
-        'redirect_uri': app.config['GOOGLE_REDIRECT_URI'],
-        'scope': 'openid profile email',
-        'response_type': 'code',
-    }
-    return f"{app.config['GOOGLE_AUTH_URL']}?{urlencode(params)}"
-
-def get_access_token(code):
-    data = {
-        'code': code,
-        'client_id': app.config['GOOGLE_CLIENT_ID'],
-        'client_secret': app.config['GOOGLE_CLIENT_SECRET'],
-        'redirect_uri': app.config['GOOGLE_REDIRECT_URI'],
-        'grant_type': 'authorization_code',
-    }
-    response = requests.post(app.config['GOOGLE_TOKEN_URL'], data=data)
-    return response.json().get('access_token')
-
-def get_user_info(token):
-    headers = {'Authorization': f'Bearer {token}'}
-    response = requests.get(app.config['GOOGLE_USER_INFO_URL'], headers=headers)
-
-    if response.status_code == 200:
-        return response.json()
+@app.route('/feature1')
+def feature1():
+    if 'google_token' in session:
+        # 使用令牌进行授权请求（示例）
+        authorized_data = make_authorized_request('https://www.googleapis.com/some/api/feature1', session['google_token'])
+        return f'Feature 1 Data: {authorized_data}'
     else:
-        # Output debug information
-        print(f"Failed to get user info. Status code: {response.status_code}")
-        print(response.text)
-        return response.json()
+        return 'Unauthorized'
 
-def decode_verify_jwt(token):
-    try:
-        # Output the raw token for debugging
-        print(f"Raw JWT Token: {token}")
+@app.route('/feature2')
+def feature2():
+    # 类似地，处理 Feature 2 的逻辑
+    pass
 
-        # Attempt to decode the token
-        decoded_token = jwt.decode(token, verify=False)
+@app.route('/feature3')
+def feature3():
+    # 类似地，处理 Feature 3 的逻辑
+    pass
 
-        return decoded_token
-    except jwt.ExpiredSignatureError:
-        print("Token has expired.")
-    except jwt.InvalidTokenError:
-        print("Invalid token.")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-
-    return None
+# ...
 
 if __name__ == '__main__':
     from urllib.parse import urlencode
