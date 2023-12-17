@@ -108,7 +108,9 @@ def get_access_token(code):
     }
     response = requests.post(app.config['GOOGLE_TOKEN_URL'], data=data)
     print(f"Token Request Response: {response.text}") 
-    return response.json().get('access_token')
+    token_response = response.json()
+    return token_response.get('id_token')  # 从响应中提取 ID Token，而不是 Access Token
+
 
 def get_user_info(token):
     headers = {'Authorization': f'Bearer {token}'}
