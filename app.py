@@ -37,14 +37,12 @@ def callback():
     token = get_access_token(code)
 
     # Debugging output
-    print(f"Received Authorization Code: {code}")
     print(f"Obtained Access Token: {token}")
     user_info = get_user_info(token)
     print(f"User Info from Google: {user_info}")
 
     try:
         # Verify the ID token
-        #id_info = verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
         id_info = verify_oauth2_token(user_info['id_token'], Request(), app.config['GOOGLE_CLIENT_ID'])
 
         # 在这里提取你需要的信息，例如用户ID、过期时间等
@@ -62,15 +60,14 @@ def callback():
         return redirect(url_for('home'))
 
     except Exception as e:
-        print(f"try except Error verifying ID token: {e}")
-        print("try except Failed to authenticate with Google")
+        print(f"Error verifying ID token: {e}")
+        print("Failed to authenticate with Google")
 
         # Add this line to print the received ID token
-        id_token = token
-        print(f"try except Received ID Token: {id_token}")
+        id_token = user_info['id_token']
+        print(f"Received ID Token: {id_token}")
 
-        return 'Failed to authenticate with Google try except'
-
+        return 'Failed to authenticate with Google'
 
 @app.route('/new-feature')
 def new_feature():
@@ -85,7 +82,7 @@ def new_feature():
         if result:
             return f'New Feature: {result}'
         else:
-            return 'Failed to make authorized request. def new_featire'
+            return 'Failed to make authorized request.'
 
     return redirect(url_for('login'))
 
@@ -120,7 +117,8 @@ def get_user_info(token):
         # 输出调试信息
         print(f"Failed to get user info. Status code: {response.status_code}")
         print(response.text)
-        return response.json()
+        # 如果请求失败，引发异常
+        raise Exception('Failed to get user info')
 
 def make_authorized_request(api_url, token):
     headers = {'Authorization': f'Bearer {token}'}
@@ -130,10 +128,10 @@ def make_authorized_request(api_url, token):
         return response.text  # 这里可以根据实际情况修改返回的结果
     else:
         # 输出调试信息
-        print(f"Failed to make authorized request. make_authorized_request Status code: {response.status_code}")
+        print(f"Failed to make authorized request. Status code: {response.status_code}")
         print(response.text)
-        return None
+        # 如果请求失败，引发异常
+        raise Exception('Failed to make authorized request.')
 
 if __name__ == '__main__':
-    from urllib.parse import urlencode
     app.run(debug=True, host='0.0.0.0', port=5000)
