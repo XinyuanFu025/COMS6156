@@ -112,12 +112,12 @@ def get_access_token(code):
     response = requests.post(app.config['GOOGLE_TOKEN_URL'], data=data)
     print(f"Token Request Response: {response.text}") 
     token_response = response.json()
-    return token_response.get('id_token')  # 从响应中提取 ID Token，而不是 Access Token
+    return token_response.get('access_token')  # 从响应中提取 ID Token，而不是 Access Token
     #return token_response.get('ya29.a0AfB_byAkBY-xVY9ThVXMO9WFw4Cp5bAg1qZFqHtoW_ZZVjeffDoUHeqDyXqxUedPi2905xolBXJ5rX5OkcfqZV38jlgzTR-xP-52ArmIL2_ty-SBkfmKNkKbHqsiAtRp_jt6ikGb9kZP_Jb1TrJv5pv5hW1FmHTkqU9YaCgYKATgSARISFQHGX2Mirfkw5qoBm1DRL7XayXM9kg0171')
 
 
 def get_user_info(token):
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = {'Authorization': f'Bearer {id_token}'}
     response = requests.get(app.config['GOOGLE_USER_INFO_URL'], headers=headers)
 
     if response.status_code == 200:
