@@ -34,11 +34,18 @@ def logout():
 def callback():
     code = request.args.get('code')
     print(f"Received Authorization Code: {code}")
-    token = get_access_token(code)
+    token_response = get_access_token(code)
+    print(f"Token Request Response: {token_response}")
+    
+    # Obtain the Access Token and ID Token from the response
+    access_token = token_response.get('access_token')
+    id_token = token_response.get('id_token')
 
     # Debugging output
-    print(f"Obtained Access Token: {token}")
-    user_info = get_user_info(token)
+    print(f"Obtained Access Token: {access_token}")
+    print(f"Obtained ID Token: {id_token}")
+
+    user_info = get_user_info(access_token)
     print(f"User Info from Google: {user_info}")
     print(f"user_info: {user_info}")
 
