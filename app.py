@@ -40,7 +40,9 @@ def callback():
     print(f"Received Authorization Code: {code}")
     print(f"Obtained Access Token: {token}")
     print(f"Access Token before calling get_user_info: {token}")
-    user_info = get_user_info(token)
+    id_token = get_access_token(code)
+    user_info = get_user_info(id_token)
+    #user_info = get_user_info(token)
     print(f"User Info from Google: {user_info}")
 
     try:
@@ -111,6 +113,7 @@ def get_access_token(code):
     print(f"Token Request Response: {response.text}") 
     token_response = response.json()
     return token_response.get('id_token')  # 从响应中提取 ID Token，而不是 Access Token
+    #return token_response.get('ya29.a0AfB_byAkBY-xVY9ThVXMO9WFw4Cp5bAg1qZFqHtoW_ZZVjeffDoUHeqDyXqxUedPi2905xolBXJ5rX5OkcfqZV38jlgzTR-xP-52ArmIL2_ty-SBkfmKNkKbHqsiAtRp_jt6ikGb9kZP_Jb1TrJv5pv5hW1FmHTkqU9YaCgYKATgSARISFQHGX2Mirfkw5qoBm1DRL7XayXM9kg0171')
 
 
 def get_user_info(token):
