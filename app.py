@@ -4,8 +4,6 @@ from urllib.parse import urlencode
 from google.oauth2.id_token import verify_oauth2_token
 from google.auth.transport.requests import Request
 
-
-
 app = Flask(__name__)
 app.secret_key = 'abcdefg'
 app.config['GOOGLE_CLIENT_ID'] = '671071079747-1er03q01u8nab6v7o7oq81ao591ms4gl.apps.googleusercontent.com'
@@ -41,16 +39,14 @@ def callback():
     # Debugging output
     print(f"Received Authorization Code: {code}")
     print(f"Obtained Access Token: {token}")
-    user_info = get_user_info(token)
-    print(f"User Info from Google: {user_info}")
     
     try:
         # Verify the ID token
         id_info = verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
 
         # 在这里提取你需要的信息，例如用户ID、过期时间等
-        user_id = user_info.get('sub')
-        expires_at = user_info.get('exp')
+        user_id = id_info.get('sub')
+        expires_at = id_info.get('exp')
 
         # 将用户ID和过期时间存储在 session 中或进行其他处理
         session['user_id'] = user_id
@@ -63,9 +59,9 @@ def callback():
         return redirect(url_for('home'))
 
     except Exception as e:
-        print(f"Error verifying ID token: {e}")
-        print("Failed to authenticate with Google")
-        return 'Failed to authenticate with Google'
+        print(f"Error verifying ID token: {e} try")
+        print("Failed to authenticate with Google try")
+        return 'Failed to authenticate with Google try'
 
 @app.route('/new-feature')
 def new_feature():
@@ -80,7 +76,7 @@ def new_feature():
         if result:
             return f'New Feature: {result}'
         else:
-            return 'Failed to make authorized request.'
+            return 'Failed to make authorized request. def new_featire'
 
     return redirect(url_for('login'))
 
@@ -125,7 +121,7 @@ def make_authorized_request(api_url, token):
         return response.text  # 这里可以根据实际情况修改返回的结果
     else:
         # 输出调试信息
-        print(f"Failed to make authorized request. Status code: {response.status_code}")
+        print(f"Failed to make authorized request. make_authorized_request Status code: {response.status_code}")
         print(response.text)
         return None
 
