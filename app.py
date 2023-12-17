@@ -35,17 +35,24 @@ def callback():
     code = request.args.get('code')
     token = get_access_token(code)
 
-    print(f"Access Token: {token}")
+    # Debugging output
+    print(f"Received Authorization Code: {code}")
+    print(f"Obtained Access Token: {token}")
 
-    # Decode and verify the JWT token
-    id_info = decode_verify_jwt(token)
-    print(f"Decoded JWT Token: {id_info}")
-    if id_info:
-        session['google_token'] = token
-        return redirect(url_for('home'))
-    else:
-        print("Failed to authenticate with Google")
-        return 'Failed to authenticate with Google'
+    if token:
+        # Decode and verify the JWT token
+        id_info = decode_verify_jwt(token)
+        print(f"Decoded JWT Token: {id_info}")
+
+        if id_info:
+            session['google_token'] = token
+            return redirect(url_for('home'))
+
+    # Output additional information in case of failure
+    print("Failed to authenticate with Google")
+    print(f"Full Request: {request.url}")
+    return 'Failed to authenticate with Google'
+
 
 def get_auth_url():
     params = {
