@@ -1,7 +1,7 @@
 from flask import Flask, redirect, request, session, url_for
 import requests
 from google.auth import jwt
-from google.auth.exceptions import ExpiredSignatureError  # Import the correct exception
+from google.auth.exceptions import GoogleAuthError
 import json
 
 app = Flask(__name__)
@@ -80,10 +80,13 @@ def decode_verify_jwt(token):
         decoded_token = jwt.decode(token, verify=False)
         # You can add verification logic here if needed
         return decoded_token
-    except jwt.ExpiredSignatureError:
-        print("JWT token has expired.")
-        return None
-    except jwt.JWTError as e:
+    #except jwt.ExpiredSignatureError:
+    #    print("JWT token has expired.")
+    #    return None
+    #except jwt.JWTError as e:
+    #    print(f"Error decoding JWT token: {e}")
+    #    return None
+    except GoogleAuthError as e:
         print(f"Error decoding JWT token: {e}")
         return None
 
