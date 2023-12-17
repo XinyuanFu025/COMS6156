@@ -112,8 +112,17 @@ def get_access_token(code):
         'grant_type': 'authorization_code',
     }
     response = requests.post(app.config['GOOGLE_TOKEN_URL'], data=data)
-    print(f"Token Request Response: {response.text}") 
-    return response.json().get('access_token')
+
+    try:
+        # 尝试将响应解析为 JSON 格式
+        token_response = response.json()
+    except json.JSONDecodeError:
+        # 如果解析失败，打印响应文本并返回 None 或者适当的错误处理
+        print(f"Failed to parse token response as JSON. Response: {response.text}")
+        return None
+
+    print(f"Token Request Response: {token_response}") 
+    return token_response.get('access_token')
 
 def get_user_info(token):
     headers = {'Authorization': f'Bearer {token}'}
