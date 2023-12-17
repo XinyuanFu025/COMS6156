@@ -45,7 +45,7 @@ def callback():
     
     try:
         # Verify the ID token
-        id_info = verify_oauth2_token(token, Request(), 671071079747-1er03q01u8nab6v7o7oq81ao591ms4gl.apps.googleusercontent.com)
+        id_info = verify_oauth2_token(token, Request(), '671071079747-1er03q01u8nab6v7o7oq81ao591ms4gl.apps.googleusercontent.com')
 
         # 在这里提取你需要的信息，例如用户ID、过期时间等
         user_id = id_info.get('sub')
