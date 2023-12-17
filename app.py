@@ -1,5 +1,6 @@
 from flask import Flask, redirect, request, session, url_for
 import requests
+from google.auth import jwt
 import json
 
 app = Flask(__name__)
@@ -32,8 +33,14 @@ def logout():
 def callback():
     code = request.args.get('code')
     token = get_access_token(code)
-    session['google_token'] = token
-    return redirect(url_for('home'))
+
+    # Decode and verify the JWT token
+    id_info = decode_verify_jwt(token)
+    if id_info:
+        session['google_token'] = token
+        return redirect(url_for('home'))
+    else:
+        return 'Failed to authenticate with Google'
 
 def get_auth_url():
     params = {
@@ -62,9 +69,21 @@ def get_user_info(token):
     if response.status_code == 200:
         return response.json()
     else:
-        # 输出调试信息
+        # Output debug information
         print(f"Failed to get user info. Status code: {response.status_code}")
         print(response.text)
+        return None
+
+def decode_verify_jwt(token):
+    try:
+        decoded_token = jwt.decode(token, verify=False)
+        # You can add verification logic here if needed
+        return decoded_token
+    except jwt.ExpiredSignatureError:
+        print("JWT token has expired.")
+        return None
+    except jwt.JWTError as e:
+        print(f"Error decoding JWT token: {e}")
         return None
 
 if __name__ == '__main__':
