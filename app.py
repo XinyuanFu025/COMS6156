@@ -68,6 +68,32 @@ def get_user_info(token):
         print(response.text)
         return None
 
+@app.route('/protected_resource')
+def protected_resource():
+    if 'google_token' in session:
+        token = session['google_token']
+        user_info = get_user_info(token)
+        
+        # 在这里你可以使用 token 向受保护资源发起请求
+        # 例如，假设有一个示例的受保护资源 URL
+        protected_resource_url = 'https://www.googleapis.com/oauth2/v1/userinfo'
+        response = make_protected_request(protected_resource_url, token)
+        
+        # 处理受保护资源的响应
+        if response.status_code == 200:
+            return f'Hello, {user_info["name"]}! Protected resource response: {response.json()} <a href="/logout">Logout</a>'
+        else:
+            return f'Error accessing protected resource. Status code: {response.status_code}'
+
+    else:
+        return '<a href="/login">Login with Google</a>'
+    
+def make_protected_request(url, token):
+    headers = {'Authorization': f'Bearer {token}'}
+    response = requests.get(url, headers=headers)
+    return response
+    
+
 if __name__ == '__main__':
     from urllib.parse import urlencode
     app.run(debug=True, host='0.0.0.0', port=5000)
