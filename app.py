@@ -2,6 +2,7 @@ from flask import Flask, redirect, request, session, url_for
 import requests
 import json
 from urllib.parse import urlencode
+from flask import jsonify
 
 app = Flask(__name__)
 app.secret_key = 'abcdefg'
@@ -19,6 +20,12 @@ def home():
         return f'Hello, {user_info["name"]}! <a href="/logout">Logout</a>'
     else:
         return '<a href="/login">Login with Google</a>'
+
+@app.route('/api/protected_data')
+def protected_data():
+    # 这里可以是一些虚构的受保护数据
+    data = {"message": "This is protected data!"}
+    return jsonify(data)
 
 @app.route('/login')
 def login():
@@ -76,7 +83,8 @@ def protected_resource():
         
         # 在这里你可以使用 token 向受保护资源发起请求
         # 例如，假设有一个示例的受保护资源 URL
-        protected_resource_url = 'https://www.googleapis.com/oauth2/v1/userinfo'
+        #protected_resource_url = 'https://www.googleapis.com/oauth2/v1/userinfo'
+        protected_resource_url = 'http://34.125.89.250:5000/api/protected_data'
         response = make_protected_request(protected_resource_url, token)
         
         # 处理受保护资源的响应
