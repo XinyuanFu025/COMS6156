@@ -82,13 +82,14 @@ def new_feature():
         user_token = session['google_token']
 
         # 示例：进行授权请求，你可以根据实际情况修改 API 地址和参数
-        api_url = 'https://api.example.com/new-feature-endpoint'
+        #api_url = 'https://api.example.com/new-feature-endpoint'
+        api_url = 'https://www.linkedin.com/in/xinyuanfucn/'
         result = make_authorized_request(api_url, user_token)
 
         if result:
             return f'New Feature: {result}'
         else:
-            return 'Failed to make authorized request. def new_featire'
+            return 'new feature Failed to make authorized request. def new_featire'
 
     return redirect(url_for('login'))
 
