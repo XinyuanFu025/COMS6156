@@ -47,16 +47,23 @@ def callback():
 
     try:
         # Verify the ID token
+        print("enter try_before id")
         id_info = verify_oauth2_token(token, Request(), app.config['GOOGLE_CLIENT_ID'])
+        print(f"try pass id: {id_info}")
+
 
 
         # 在这里提取你需要的信息，例如用户ID、过期时间等
         user_id = id_info.get('sub')
         expires_at = id_info.get('exp')
+        print(f"try pass user_id: {user_id}")
+        print(f"try pass expires_at: {expires_at}")
 
         # 将用户ID和过期时间存储在 session 中或进行其他处理
         session['user_id'] = user_id
         session['expires_at'] = expires_at
+        #print(f"try pass id: {id_info}")
+        #print(f"try pass id: {id_info}")
 
         # 如果需要进行更多的验证，可以在这里添加逻辑
         # ...
