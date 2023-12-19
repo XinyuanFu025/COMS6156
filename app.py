@@ -84,7 +84,8 @@ def protected_resource():
         # 在这里你可以使用 token 向受保护资源发起请求
         # 例如，假设有一个示例的受保护资源 URL
         #protected_resource_url = 'https://www.googleapis.com/oauth2/v1/userinfo'
-        protected_resource_url = 'http://34.125.89.250:5000/api/protected_data'
+        #protected_resource_url = 'http://34.125.89.250:5000/api/protected_data'
+        protected_resource_url = 'http://54.82.84.92:8080/'
         response = make_protected_request(protected_resource_url, token)
         
         # 处理受保护资源的响应
