@@ -90,6 +90,7 @@ def protected_resource():
         
         # 处理受保护资源的响应
         if response.status_code == 200:
+            print(f"Pass verification and requested")
             return f'Hello, {user_info["name"]}! Protected resource response: {response.json()} <a href="/logout">Logout</a>'
         else:
             return f'Error accessing protected resource. Status code: {response.status_code}'
